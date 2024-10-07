@@ -1,6 +1,6 @@
 // control.c
 
-#include "control.h"
+#include "Control.h"
 #include <iostream>
 #include <fstream>
 #include <cmath>
