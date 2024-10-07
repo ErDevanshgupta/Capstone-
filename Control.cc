@@ -6,7 +6,7 @@
 #include <cmath>
 #include <cstdlib>
 #include <ctime>
-#include <pcap.h>  // Use pcap library for .pcap trace logging
+
 
 // Constructor
 SDNController::SDNController() {
