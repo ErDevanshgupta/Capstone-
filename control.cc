@@ -14,16 +14,31 @@ SDNController::~SDNController() {
 }
 
 void SDNController::initializeNetwork(int numNodes) {
-    // Initialize network nodes
-    nodes.reserve(numNodes);
-    for (int i = 0; i < numNodes; ++i) {
-        Node node;
-        node.id = i;
-        node.energy = 1000.0; // Initial energy
-        node.trustScore = 1.0; // Initial trust score
-        node.isMalicious = (i % 10 == 0); // Every 10th node is malicious
-        nodes.push_back(node);
+    NodeContainer nodes;
+    nodes.Create(numNodes);
+
+    // Use CsmaHelper for wired connections (or AquaSimHelper for UASNs)
+    ns3::CsmaHelper csmaHelper;
+    csmaHelper.SetChannelAttribute("DataRate", DataRateValue(DataRate("100Mbps")));
+    csmaHelper.SetChannelAttribute("Delay", TimeValue(MilliSeconds(2)));
+
+    // Install devices on all nodes
+    NetDeviceContainer netDevices = csmaHelper.Install(nodes);
+
+    // Add devices to the vector for PCAP tracing
+    for (uint32_t i = 0; i < netDevices.GetN(); ++i) {
+        devices.push_back(netDevices.Get(i));
     }
+
+    // Install Internet stack (IP, routing, etc.) on the nodes
+    InternetStackHelper internet;
+    internet.Install(nodes);
+
+    // Assign IP addresses to devices
+    Ipv4AddressHelper ipv4;
+    ipv4.SetBase("10.1.1.0", "255.255.255.0");
+    ipv4.Assign(netDevices);
+}
 
     // Set up basic routing (neighbor discovery)
     for (auto &node : nodes) {
