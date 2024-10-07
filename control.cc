@@ -46,10 +46,11 @@ void SDNController::EnablePcapTracing() {
 
     for (size_t i = 0; i < devices.size(); ++i) {
         std::string filename = "/home/capstone/trace/devansh/trace/node" + std::to_string(i) + ".pcap";
-        csmaHelper.EnablePcap(filename, devices.Get(i), true);  // Corrected to use .Get(i) to access device
+        csmaHelper.EnablePcap(filename, devices[i], true);  // Corrected to use devices[i] to access device
         std::cout << "PCAP logging enabled for node " << i << " -> " << filename << std::endl;
     }
 }
+
 
 double SDNController::computeCommunicationTrust(const Node &node) {
     // Placeholder: Implement communication trust computation
