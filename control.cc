@@ -3,7 +3,7 @@
 #include <ns3/internet-module.h>
 #include <ns3/net-device.h>
 #include <ns3/ipv4-address-helper.h>
-#include <ns3/ofswitch13-helper.h>  // Include OFSwitch13Helper header
+#include <ns3/ofswitch13-module.h>  // Ensure OFSwitch13 module is correctly included
 #include <iostream>
 
 // Constructor
@@ -21,18 +21,9 @@ void SDNController::initializeNetwork(int numNodes) {
     ns3::NodeContainer nodes;
     nodes.Create(numNodes);
 
-    // Use OFSwitch13Helper for OpenFlow switches
+    // Use OFSwitch13Helper to manage OpenFlow switches and controller
     ns3::OFSwitch13Helper switchHelper;
-
-    // Install OpenFlow switches on node
-    ns3::Ptr<ns3::OFSwitch13InternalHelper> ofHelper = ns3::CreateObject<ns3::OFSwitch13InternalHelper>();
-
-    // Create controller
-    ns3::Ptr<ns3::OFSwitch13LearningController> controller = ns3::CreateObject<ns3::OFSwitch13LearningController>();
-
-    // Install the controller and the switch on nodes
-    ofHelper->InstallController(nodes.Get(0), controller);
-
+    
     // Use CsmaHelper for wired connections (or AquaSimHelper for underwater networks)
     ns3::CsmaHelper csmaHelper;
     csmaHelper.SetChannelAttribute("DataRate", ns3::DataRateValue(ns3::DataRate("100Mbps")));
@@ -41,11 +32,13 @@ void SDNController::initializeNetwork(int numNodes) {
     // Install devices on all nodes
     ns3::NetDeviceContainer netDevices = csmaHelper.Install(nodes);
 
-    // Populate devices vector with installed devices
-    for (uint32_t i = 0; i < nodes.GetN(); ++i) {
-        devices.push_back(netDevices.Get(i));
-    }
-
+    // Install OpenFlow switch on the first node
+    ns3::Ptr<ns3::OFSwitch13LearningController> controller = ns3::CreateObject<ns3::OFSwitch13LearningController>();
+    ns3::OFSwitch13DeviceContainer switchDevices = switchHelper.InstallSwitch(nodes.Get(0), netDevices);
+    
+    // Attach the controller to the OpenFlow switch
+    switchHelper.InstallController(nodes.Get(0), controller);
+    
     // Install Internet stack on nodes (IP, routing, etc.)
     ns3::InternetStackHelper internet;
     internet.Install(nodes);
@@ -54,6 +47,11 @@ void SDNController::initializeNetwork(int numNodes) {
     ns3::Ipv4AddressHelper ipv4;
     ipv4.SetBase("10.1.1.0", "255.255.255.0");
     ipv4.Assign(netDevices);
+
+    // Store devices for pcap tracing
+    for (uint32_t i = 0; i < netDevices.GetN(); ++i) {
+        devices.push_back(netDevices.Get(i));
+    }
 }
 
 void SDNController::EnablePcapTracing() {
