@@ -1,5 +1,7 @@
 #include "control.h"
 #include <ns3/csma-helper.h>
+#include <ns3/internet-module.h>  // Include Internet module header for InternetStackHelper
+#include <ns3/ipv4-address-helper.h>  // Include IPv4 address helper header
 #include <iostream>
 
 // Constructor
@@ -24,11 +26,6 @@ void SDNController::initializeNetwork(int numNodes) {
     // Install devices on all nodes
     ns3::NetDeviceContainer netDevices = csmaHelper.Install(nodes);
 
-    // Add devices to the vector for PCAP tracing
-    for (uint32_t i = 0; i < netDevices.GetN(); ++i) {
-        devices.push_back(netDevices.Get(i));
-    }
-
     // Install Internet stack (IP, routing, etc.) on the nodes
     ns3::InternetStackHelper internet;
     internet.Install(nodes);
@@ -49,7 +46,7 @@ void SDNController::EnablePcapTracing() {
 
     for (size_t i = 0; i < devices.size(); ++i) {
         std::string filename = "/home/capstone/trace/devansh/trace/node" + std::to_string(i) + ".pcap";
-        csmaHelper.EnablePcap(filename, devices[i], true);
+        csmaHelper.EnablePcap(filename, devices.Get(i), true);  // Corrected to use .Get(i) to access device
         std::cout << "PCAP logging enabled for node " << i << " -> " << filename << std::endl;
     }
 }
