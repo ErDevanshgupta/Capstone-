@@ -70,14 +70,17 @@ void SDNController::handlePacket(Packet &pkt) {
 }
 
 void SDNController::EnablePcapTracing() {
-    ns3::CsmaHelper csmaHelper;  // Corrected with ns3:: namespace
+    ns3::CsmaHelper csmaHelper;
+
+    if (devices.empty()) {
+        std::cerr << "No devices initialized for PCAP tracing!" << std::endl;
+        return;
+    }
 
     for (size_t i = 0; i < devices.size(); ++i) {
-        // Define the path for the PCAP files
         std::string filename = "/home/capstone/trace/devansh/trace/node" + std::to_string(i) + ".pcap";
-        
-        // Enable PCAP tracing for each device
         csmaHelper.EnablePcap(filename, devices[i], true);
         std::cout << "PCAP logging enabled for node " << i << " -> " << filename << std::endl;
     }
 }
+
