@@ -23,11 +23,11 @@ void SDNController::initializeNetwork(int numNodes) {
 
     // Use OFSwitch13Helper for OpenFlow switches
     ns3::OFSwitch13Helper switchHelper;
-    
+
     // Create an instance of OFSwitch13 (concrete subclass)
     ns3::OFSwitch13 switchInstance;
 
-    // Install switches on nodes
+    // Install switch on node
     switchHelper.InstallSwitch(nodes.Get(0), switchInstance);
 
     // Use CsmaHelper for wired connections (or AquaSimHelper for underwater networks)
@@ -52,7 +52,6 @@ void SDNController::initializeNetwork(int numNodes) {
     ipv4.SetBase("10.1.1.0", "255.255.255.0");
     ipv4.Assign(netDevices);
 }
-
 
 void SDNController::EnablePcapTracing() {
     ns3::CsmaHelper csmaHelper;
