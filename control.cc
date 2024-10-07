@@ -1,8 +1,10 @@
 #include "control.h"
 #include <ns3/csma-helper.h>
-#include <ns3/internet-module.h>  // Include Internet module header for InternetStackHelper
-#include <ns3/ipv4-address-helper.h>  // Include IPv4 address helper header
-#include <iostream>
+#include <ns3/internet-module.h>
+#include <ns3/net-device.h>
+#include <ns3/ipv4-address-helper.h>
+#include <ns3/ofswitch13-helper.h>
+#include <ns3/aqua-sim-helper.h>  // Include Aqua-Sim-NG helper header
 
 // Constructor
 SDNController::SDNController() {
@@ -15,24 +17,29 @@ SDNController::~SDNController() {
 }
 
 void SDNController::initializeNetwork(int numNodes) {
-    // Create nodes container
     ns3::NodeContainer nodes;
     nodes.Create(numNodes);
+
+    // Use OFSwitch13Helper for OpenFlow switches
+    ns3::OFSwitch13Helper switchHelper;
+
+    // Install switches on nodes
+    ns3::NetDeviceContainer switchDevices = switchHelper.Install(nodes);
 
     // Use CsmaHelper for wired connections (or AquaSimHelper for underwater networks)
     ns3::CsmaHelper csmaHelper;
     csmaHelper.SetChannelAttribute("DataRate", ns3::DataRateValue(ns3::DataRate("100Mbps")));
     csmaHelper.SetChannelAttribute("Delay", ns3::TimeValue(ns3::MilliSeconds(2)));
 
-    // Install devices on nodes
+    // Install devices on all nodes
     ns3::NetDeviceContainer netDevices = csmaHelper.Install(nodes);
 
-    // Populate devices vector with installed devices
+    // Add devices to the vector for PCAP tracing
     for (uint32_t i = 0; i < nodes.GetN(); ++i) {
         devices.push_back(netDevices.Get(i));
     }
 
-    // Install Internet stack on nodes (IP, routing, etc.)
+    // Install Internet stack (IP, routing, etc.) on the nodes
     ns3::InternetStackHelper internet;
     internet.Install(nodes);
 
@@ -40,8 +47,14 @@ void SDNController::initializeNetwork(int numNodes) {
     ns3::Ipv4AddressHelper ipv4;
     ipv4.SetBase("10.1.1.0", "255.255.255.0");
     ipv4.Assign(netDevices);
-}
 
+    // Install OpenFlow switches on nodes
+    switchHelper.InstallSwitches(nodes, switchDevices);
+
+    // Configure Aqua-Sim-NG for underwater simulation (if applicable)
+    ns3::AquaSimHelper aquaSimHelper;
+    // Configure Aqua-Sim-NG parameters as needed
+}
 
 void SDNController::EnablePcapTracing() {
     ns3::CsmaHelper csmaHelper;
@@ -53,11 +66,10 @@ void SDNController::EnablePcapTracing() {
 
     for (size_t i = 0; i < devices.size(); ++i) {
         std::string filename = "/home/capstone/trace/devansh/trace/node" + std::to_string(i) + ".pcap";
-        csmaHelper.EnablePcap(filename, devices[i], true);  // Corrected to use devices[i] to access device
+        csmaHelper.EnablePcap(filename, devices[i], true);
         std::cout << "PCAP logging enabled for node " << i << " -> " << filename << std::endl;
     }
 }
-
 
 double SDNController::computeCommunicationTrust(const Node &node) {
     // Placeholder: Implement communication trust computation
@@ -91,3 +103,4 @@ void SDNController::evaluateTrust() {
         node.trustScore = runLSTMModel(trustMetrics);  // Using LSTM to compute trust score
     }
 }
+
