@@ -22,35 +22,53 @@ void SDNController::initializeNetwork(int numNodes) {
     nodes.Create(numNodes);
 
     // Use OFSwitch13Helper for OpenFlow switches
-    ns3::OFSwitch13Helper switchHelper;
+    ns3::OFSwitch13Helper ofHelper;
 
-    // Create an instance of OFSwitch13 (concrete subclass)
-    ns3::OFSwitch13 switchInstance;
+    // Create controllers and switches
+    ns3::NodeContainer controllerNodes;
+    ns3::NodeContainer switchNodes;
+    controllerNodes.Create(1);  // Assuming 1 controller for now
+    switchNodes.Create(1);  // Assuming 1 switch for now
 
-    // Install switches on nodes
-    ns3::NetDeviceContainer switchDevices = switchHelper.InstallSwitches(nodes, switchInstance);
+    // Create the switch and controller devices
+    ns3::NetDeviceContainer switchDevices;
+    ns3::NetDeviceContainer controllerDevices;
 
-    // Use CsmaHelper for wired connections (or AquaSimHelper for underwater networks)
+    // Use CsmaHelper for wired connections between switches and controller
     ns3::CsmaHelper csmaHelper;
     csmaHelper.SetChannelAttribute("DataRate", ns3::DataRateValue(ns3::DataRate("100Mbps")));
     csmaHelper.SetChannelAttribute("Delay", ns3::TimeValue(ns3::MilliSeconds(2)));
 
-    // Install devices on all nodes
-    ns3::NetDeviceContainer netDevices = csmaHelper.Install(nodes);
+    // Install devices on the switch and controller nodes
+    switchDevices = csmaHelper.Install(switchNodes);
+    controllerDevices = csmaHelper.Install(controllerNodes);
 
     // Populate devices vector with installed devices
-    for (uint32_t i = 0; i < nodes.GetN(); ++i) {
-        devices.push_back(netDevices.Get(i));
+    for (uint32_t i = 0; i < switchNodes.GetN(); ++i) {
+        devices.push_back(switchDevices.Get(i));
     }
 
-    // Install Internet stack on nodes (IP, routing, etc.)
+    // Install Internet stack on the nodes
     ns3::InternetStackHelper internet;
     internet.Install(nodes);
 
     // Assign IP addresses to devices
     ns3::Ipv4AddressHelper ipv4;
     ipv4.SetBase("10.1.1.0", "255.255.255.0");
-    ipv4.Assign(netDevices);
+    ipv4.Assign(switchDevices);
+
+    // Create OpenFlow switch and controller
+    Ptr<ns3::OFSwitch13InternalHelper> ofSwitchHelper = CreateObject<ns3::OFSwitch13InternalHelper>();
+    Ptr<ns3::OFSwitch13LearningController> controller = CreateObject<ns3::OFSwitch13LearningController>();
+
+    // Install controller on controller node
+    ofSwitchHelper->InstallController(controllerNodes.Get(0), controller);
+
+    // Install OpenFlow switch on switch node
+    ofSwitchHelper->InstallSwitch(switchNodes.Get(0), switchDevices.Get(0));
+
+    // Create the OpenFlow channel between the switch and controller
+    ofSwitchHelper->CreateOpenFlowChannels();
 }
 
 void SDNController::EnablePcapTracing() {
@@ -100,4 +118,3 @@ void SDNController::evaluateTrust() {
         node.trustScore = runLSTMModel(trustMetrics);  // Using LSTM to compute trust score
     }
 }
-
