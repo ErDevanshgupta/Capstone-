@@ -22,12 +22,10 @@ void SDNController::initializeNetwork(int numNodes) {
     nodes.Create(numNodes);
 
     // Use OFSwitch13Helper for OpenFlow switches
-    ns3::OFSwitch13Helper switchHelper;
-
-    // Create an instance of OFSwitch13 (concrete subclass)
     ns3::OFSwitch13 switchInstance;
 
     // Install switch on node
+    ns3::OFSwitch13Helper switchHelper;
     switchHelper.InstallSwitch(nodes.Get(0), switchInstance);
 
     // Use CsmaHelper for wired connections (or AquaSimHelper for underwater networks)
