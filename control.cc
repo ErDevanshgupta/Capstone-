@@ -15,18 +15,24 @@ SDNController::~SDNController() {
 }
 
 void SDNController::initializeNetwork(int numNodes) {
+    // Create nodes container
     ns3::NodeContainer nodes;
     nodes.Create(numNodes);
 
-    // Use CsmaHelper for wired connections (or AquaSimHelper for UASNs)
+    // Use CsmaHelper for wired connections (or AquaSimHelper for underwater networks)
     ns3::CsmaHelper csmaHelper;
     csmaHelper.SetChannelAttribute("DataRate", ns3::DataRateValue(ns3::DataRate("100Mbps")));
     csmaHelper.SetChannelAttribute("Delay", ns3::TimeValue(ns3::MilliSeconds(2)));
 
-    // Install devices on all nodes
+    // Install devices on nodes
     ns3::NetDeviceContainer netDevices = csmaHelper.Install(nodes);
 
-    // Install Internet stack (IP, routing, etc.) on the nodes
+    // Populate devices vector with installed devices
+    for (uint32_t i = 0; i < nodes.GetN(); ++i) {
+        devices.push_back(netDevices.Get(i));
+    }
+
+    // Install Internet stack on nodes (IP, routing, etc.)
     ns3::InternetStackHelper internet;
     internet.Install(nodes);
 
@@ -35,6 +41,7 @@ void SDNController::initializeNetwork(int numNodes) {
     ipv4.SetBase("10.1.1.0", "255.255.255.0");
     ipv4.Assign(netDevices);
 }
+
 
 void SDNController::EnablePcapTracing() {
     ns3::CsmaHelper csmaHelper;
