@@ -4,7 +4,6 @@
 #include <ns3/net-device.h>
 #include <ns3/ipv4-address-helper.h>
 #include <ns3/ofswitch13-helper.h>  // Include OFSwitch13Helper header
-#include <ns3/aqua-sim-helper.h>    // Include Aqua-Sim-NG helper header
 #include <iostream>
 
 // Constructor
@@ -25,8 +24,10 @@ void SDNController::initializeNetwork(int numNodes) {
     // Use OFSwitch13Helper for OpenFlow switches
     ns3::OFSwitch13Helper switchHelper;
 
-    // Install switches on nodes (Concrete subclass needed for InstallSwitches())
-    ns3::OFSwitch13 switchInstance;  // Concrete subclass of OFSwitch13Helper
+    // Create an instance of OFSwitch13 (concrete subclass)
+    ns3::OFSwitch13 switchInstance;
+
+    // Install switches on nodes
     ns3::NetDeviceContainer switchDevices = switchHelper.InstallSwitches(nodes, switchInstance);
 
     // Use CsmaHelper for wired connections (or AquaSimHelper for underwater networks)
