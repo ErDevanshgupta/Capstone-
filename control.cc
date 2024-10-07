@@ -1,14 +1,13 @@
 #include "control.h"
 #include <ns3/csma-helper.h>
-#include <ns3/internet-module.h>
-#include <ns3/net-device.h>
-#include <ns3/ipv4-address-helper.h>
 #include <iostream>
 
+// Constructor
 SDNController::SDNController() {
     // Constructor implementation
 }
 
+// Destructor
 SDNController::~SDNController() {
     // Destructor implementation
 }
@@ -55,17 +54,17 @@ void SDNController::EnablePcapTracing() {
     }
 }
 
-double SDNController::computeCommunicationTrust(const ns3::Node &node) {
+double SDNController::computeCommunicationTrust(const Node &node) {
     // Placeholder: Implement communication trust computation
     return 0.8;  // Example value
 }
 
-double SDNController::computeNodeTrust(const ns3::Node &node) {
+double SDNController::computeNodeTrust(const Node &node) {
     // Placeholder: Implement node trust computation
     return 0.9;  // Example value
 }
 
-double SDNController::computeEnvironmentTrust(const ns3::Node &node) {
+double SDNController::computeEnvironmentTrust(const Node &node) {
     // Placeholder: Implement environment trust computation
     return 0.85;  // Example value
 }
