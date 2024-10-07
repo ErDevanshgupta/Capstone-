@@ -2,7 +2,6 @@
 
 #include "control.h"
 #include <iostream>
-#include <ns3/aqua-sim-ng.h>  // Include Aqua-Sim-NG headers
 #include <ns3/core-module.h>
 #include <ns3/network-module.h>
 #include <ns3/aqua-sim-helper.h>  // Aqua-Sim helper for node creation
