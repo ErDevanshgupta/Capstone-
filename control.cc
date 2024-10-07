@@ -3,8 +3,9 @@
 #include <ns3/internet-module.h>
 #include <ns3/net-device.h>
 #include <ns3/ipv4-address-helper.h>
-#include <ns3/ofswitch13-helper.h>
-#include <ns3/aqua-sim-helper.h>  // Include Aqua-Sim-NG helper header
+#include <ns3/ofswitch13-helper.h>  // Include OFSwitch13Helper header
+#include <ns3/aqua-sim-helper.h>    // Include Aqua-Sim-NG helper header
+#include <iostream>
 
 // Constructor
 SDNController::SDNController() {
@@ -17,14 +18,16 @@ SDNController::~SDNController() {
 }
 
 void SDNController::initializeNetwork(int numNodes) {
+    // Create nodes container
     ns3::NodeContainer nodes;
     nodes.Create(numNodes);
 
     // Use OFSwitch13Helper for OpenFlow switches
     ns3::OFSwitch13Helper switchHelper;
 
-    // Install switches on nodes
-    ns3::NetDeviceContainer switchDevices = switchHelper.Install(nodes);
+    // Install switches on nodes (Concrete subclass needed for InstallSwitches())
+    ns3::OFSwitch13 switchInstance;  // Concrete subclass of OFSwitch13Helper
+    ns3::NetDeviceContainer switchDevices = switchHelper.InstallSwitches(nodes, switchInstance);
 
     // Use CsmaHelper for wired connections (or AquaSimHelper for underwater networks)
     ns3::CsmaHelper csmaHelper;
@@ -34,12 +37,12 @@ void SDNController::initializeNetwork(int numNodes) {
     // Install devices on all nodes
     ns3::NetDeviceContainer netDevices = csmaHelper.Install(nodes);
 
-    // Add devices to the vector for PCAP tracing
+    // Populate devices vector with installed devices
     for (uint32_t i = 0; i < nodes.GetN(); ++i) {
         devices.push_back(netDevices.Get(i));
     }
 
-    // Install Internet stack (IP, routing, etc.) on the nodes
+    // Install Internet stack on nodes (IP, routing, etc.)
     ns3::InternetStackHelper internet;
     internet.Install(nodes);
 
@@ -47,13 +50,6 @@ void SDNController::initializeNetwork(int numNodes) {
     ns3::Ipv4AddressHelper ipv4;
     ipv4.SetBase("10.1.1.0", "255.255.255.0");
     ipv4.Assign(netDevices);
-
-    // Install OpenFlow switches on nodes
-    switchHelper.InstallSwitches(nodes, switchDevices);
-
-    // Configure Aqua-Sim-NG for underwater simulation (if applicable)
-    ns3::AquaSimHelper aquaSimHelper;
-    // Configure Aqua-Sim-NG parameters as needed
 }
 
 void SDNController::EnablePcapTracing() {
@@ -103,4 +99,3 @@ void SDNController::evaluateTrust() {
         node.trustScore = runLSTMModel(trustMetrics);  // Using LSTM to compute trust score
     }
 }
-
