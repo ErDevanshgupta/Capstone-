@@ -41,7 +41,7 @@ void SDNController::initializeNetwork(int numNodes)
     ipv4.Assign(netDevices);
 
     // Enable tracing (PCAP)
-    EnablePcapTracing();
+    EnablePcapTracing(netDevices); // Pass netDevices to EnablePcapTracing
 
     // Add trust-based decision logic here
     calculateNodeTrust(nodes);
@@ -102,11 +102,11 @@ vector<double> SDNController::runLstmModel(const vector<double>& inputData)
     return predictedTraffic;
 }
 
-void SDNController::EnablePcapTracing()
+void SDNController::EnablePcapTracing(NetDeviceContainer devices) // Pass devices here
 {
     CsmaHelper csmaHelper;
-    for (size_t i = 0; i < devices.size(); i++)
+    for (size_t i = 0; i < devices.GetN(); ++i)
     {
-        csmaHelper.EnablePcap("/home/capstone/trace/devansh/trace", devices[i], true);
+        csmaHelper.EnablePcap("/home/capstone/trace/devansh/trace", devices.Get(i), true);
     }
 }
