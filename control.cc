@@ -32,6 +32,7 @@ NetDeviceContainer SDNController::initializeNetwork(int numNodes) {
 }
 
 
+
 // Trust calculation for each node
 void SDNController::calculateNodeTrust(NodeContainer& nodes)
 {
