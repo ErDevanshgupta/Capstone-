@@ -1,62 +1,27 @@
-#ifndef CONTROL_H
-#define CONTROL_H
+#ifndef SDNCONTROLLER_H
+#define SDNCONTROLLER_H
 
-#include <vector>
-#include <string>
-#include <map>
-#include <ns3/net-device.h>
+#include <ns3/core-module.h>
+#include <ns3/network-module.h>
+#include <ns3/csma-module.h>
+#include <ns3/internet-module.h>
+#include <ns3/ofswitch13-module.h>
 
-// Node structure representing individual network nodes
-struct Node {
-    int id;
-    double energy;
-    double trustScore;
-    bool isMalicious;
-};
+using namespace ns3;
+using namespace std;
 
-// Packet structure for simulating network packets
-struct Packet {
-    int src;
-    int dest;
-    std::vector<int> path;
-};
-
-// SDNController class for managing trust and routing decisions
 class SDNController {
 public:
-    SDNController();
-    ~SDNController();
-
-    // Initialize the network with a given number of nodes
     void initializeNetwork(int numNodes);
-
-    // Evaluate trust for all nodes
-    void evaluateTrust();
-
-    // Update routing table based on trust values
-    void updateRouting();
-
-    // Handle packet forwarding and logging
-    void handlePacket(Packet &pkt);
-
-    // Enable PCAP tracing for network devices
     void EnablePcapTracing();
 
-private:
-    std::vector<Node> nodes;
-    std::map<int, std::vector<int>> routingTable; // Node ID -> list of neighbors
-    std::vector<ns3::Ptr<ns3::NetDevice>> devices; // Store network devices
+    // Trust calculation and LSTM prediction functions
+    void calculateNodeTrust(NodeContainer& nodes);
+    double computeNodeTrust(Ptr<Node> node);
 
-    // Trust evaluation functions
-    double computeCommunicationTrust(const Node &node);
-    double computeNodeTrust(const Node &node);
-    double computeEnvironmentTrust(const Node &node);
-
-    // Routing function to find the optimal path
-    std::vector<int> getOptimalPath(int src, int dest);
-
-    // Placeholder for LSTM model implementation
-    double runLSTMModel(const std::vector<double> &trustMetrics);
+    void lstmTrafficPrediction();
+    vector<double> loadTrafficData();
+    vector<double> runLstmModel(const vector<double>& inputData);
 };
 
-#endif // CONTROL_H
+#endif // SDNCONTROLLER_H
