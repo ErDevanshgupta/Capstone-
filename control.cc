@@ -102,7 +102,7 @@ vector<double> SDNController::runLstmModel(const vector<double>& inputData)
     return predictedTraffic;
 }
 
-void SDNController::EnablePcapTracing(NetDeviceContainer devices) // Pass devices here
+void SDNController::EnablePcapTracing(NetDeviceContainer devices) 
 {
     CsmaHelper csmaHelper;
     for (size_t i = 0; i < devices.GetN(); ++i)
