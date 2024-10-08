@@ -6,21 +6,21 @@
 #include "control.h"
 
 using namespace ns3;
-
 int main(int argc, char *argv[]) {
     // Set up the network and nodes
     SDNController controller;
     NodeContainer nodes;
     nodes.Create(3); // Example: Create 3 nodes
 
-    // Initialize the network
+    // Initialize the network and get the NetDeviceContainer
     NetDeviceContainer netDevices = controller.initializeNetwork(nodes.GetN());
 
-    // Enable PCAP tracing (Pass netDevices)
-    controller.EnablePcapTracing(netDevices); 
+    // Enable PCAP tracing
+    controller.EnablePcapTracing(netDevices);
 
     // Run the simulation
     Simulator::Run();
     Simulator::Destroy();
     return 0;
 }
+
