@@ -6,7 +6,6 @@
 #include <ns3/network-module.h>
 #include <ns3/ofswitch13-module.h>
 #include <iostream>
-#include <fstream>
 #include <vector>
 
 using namespace ns3;
@@ -29,7 +28,7 @@ void SDNController::initializeNetwork(int numNodes)
     ofHelper->InstallController(nodes.Get(0), controller); // Set controller on node 0
 
     // Install switches
-    NetDeviceContainer switchDevices = ofHelper->InstallSwitch(nodes.Get(1), netDevices);
+    ofHelper->InstallSwitch(nodes.Get(1), netDevices);
     ofHelper->CreateOpenFlowChannels();
 
     // Install the Internet stack
@@ -67,7 +66,6 @@ double SDNController::computeNodeTrust(Ptr<Node> node)
 {
     // In real implementation, this would be based on network stats like packet delivery, latency, etc.
     double trustValue = 0.9;  // Example static value
-    // Simulate trust value calculation
     trustValue = trustValue - 0.1 * (rand() % 5);  // Dummy computation
     return trustValue;
 }
@@ -76,8 +74,8 @@ double SDNController::computeNodeTrust(Ptr<Node> node)
 void SDNController::lstmTrafficPrediction()
 {
     // Placeholder for LSTM model loading and traffic prediction logic
-    std::vector<double> trafficData = loadTrafficData();
-    std::vector<double> prediction = runLstmModel(trafficData);
+    vector<double> trafficData = loadTrafficData();
+    vector<double> prediction = runLstmModel(trafficData);
 
     // Output the prediction results
     for (size_t i = 0; i < prediction.size(); ++i)
@@ -87,16 +85,16 @@ void SDNController::lstmTrafficPrediction()
 }
 
 // Function to load traffic data for LSTM model (dummy data here)
-std::vector<double> SDNController::loadTrafficData()
+vector<double> SDNController::loadTrafficData()
 {
-    std::vector<double> trafficData = {0.2, 0.3, 0.5, 0.7, 0.6, 0.8}; // Example data
+    vector<double> trafficData = {0.2, 0.3, 0.5, 0.7, 0.6, 0.8}; // Example data
     return trafficData;
 }
 
 // Dummy LSTM model to predict traffic (this should load a real LSTM model)
-std::vector<double> SDNController::runLstmModel(const std::vector<double>& inputData)
+vector<double> SDNController::runLstmModel(const vector<double>& inputData)
 {
-    std::vector<double> predictedTraffic(inputData.size());
+    vector<double> predictedTraffic(inputData.size());
     for (size_t i = 0; i < inputData.size(); ++i)
     {
         predictedTraffic[i] = inputData[i] + 0.1;  // Dummy prediction logic
