@@ -10,18 +10,14 @@
 using namespace ns3;
 using namespace std;
 
+
+
 class SDNController {
 public:
-    void initializeNetwork(int numNodes);
-    void calculateNodeTrust(ns3::NodeContainer& nodes);
-    double computeNodeTrust(ns3::Ptr<ns3::Node> node);
-    void lstmTrafficPrediction();
-    std::vector<double> loadTrafficData();
-    std::vector<double> runLstmModel(const std::vector<double>& inputData);
-
-    // Update this declaration to accept NetDeviceContainer
+    NetDeviceContainer initializeNetwork(int numNodes);  // Change void to NetDeviceContainer
     void EnablePcapTracing(ns3::NetDeviceContainer devices);
 };
+
 
 
 #endif // SDNCONTROLLER_H
