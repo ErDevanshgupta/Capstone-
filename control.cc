@@ -4,7 +4,6 @@
 #include "ns3/ipv4-address-helper.h"
 #include "ns3/internet-stack-helper.h"
 #include "ns3/log.h"
-
 #include "ns3/pcap-file-wrapper.h"
 #include "ns3/point-to-point-helper.h"
 
@@ -13,47 +12,40 @@ using namespace std;
 
 NS_LOG_COMPONENT_DEFINE("SDNController");
 
-NetDeviceContainer SDNController::initializeNetwork(int numNodes) {
+class SDNController {
+public:
+    void initializeNetwork(int numNodes);
+    void EnablePcapTracing(NetDeviceContainer devices);
+};
+
+void SDNController::initializeNetwork(int numNodes) {
     NodeContainer nodes;
     nodes.Create(numNodes);
 
-    // Install internet stack
-    InternetStackHelper internet;
-    internet.Install(nodes);
-
-    // Create a point-to-point link between each pair of nodes
+    // Create a PointToPointHelper for configuring point-to-point links
     PointToPointHelper pointToPoint;
     pointToPoint.SetDeviceAttribute("DataRate", StringValue("5Mbps"));
     pointToPoint.SetChannelAttribute("Delay", StringValue("2ms"));
 
-    NetDeviceContainer netDevices;
-
-    // Connect nodes in pairs, assuming even number of nodes
-    for (int i = 0; i < numNodes - 1; i++) {
-        NetDeviceContainer linkDevices = pointToPoint.Install(nodes.Get(i), nodes.Get(i + 1));
-        netDevices.Add(linkDevices);
+    // Connect the nodes
+    for (uint32_t i = 0; i < numNodes - 1; ++i) {
+        NetDeviceContainer devices = pointToPoint.Install(nodes.Get(i), nodes.Get(i + 1));
+        // You can store devices for PCAP tracing if necessary
     }
-
-    // Assign IP addresses
-    Ipv4AddressHelper ipv4;
-    ipv4.SetBase("10.1.1.0", "255.255.255.0");
-
-    for (size_t i = 0; i < netDevices.GetN(); i += 2) {
-        ipv4.Assign(netDevices.Get(i));
-    }
-
-    return netDevices;
 }
 
 void SDNController::EnablePcapTracing(NetDeviceContainer devices) {
-    PcapHelper pcapHelper;
-    
-    for (size_t i = 0; i < devices.GetN(); i++) {
+    for (size_t i = 0; i < devices.GetN(); ++i) {
         Ptr<NetDevice> device = devices.Get(i);
-        // Assuming you are working with point-to-point devices, change as needed
-        pcapHelper.EnablePcap("trace", device, true);
+        // Use the PcapFileWrapper to enable tracing
+        PcapFileWrapper file;
+        std::ostringstream oss;
+        oss << "trace_" << i << ".pcap";
+        file.Open(oss.str(), std::ios::out | std::ios::binary);
+        device->TraceConnectWithoutContext("Tx", MakeCallback(&PcapFileWrapper::Trace, &file));
     }
 }
+
 
 
 void SDNController::calculateNodeTrust(NodeContainer& nodes) {
