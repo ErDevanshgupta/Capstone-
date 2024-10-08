@@ -46,11 +46,15 @@ NetDeviceContainer SDNController::initializeNetwork(int numNodes) {
 }
 
 void SDNController::EnablePcapTracing(NetDeviceContainer devices) {
+    PcapHelper pcapHelper;
+    
     for (size_t i = 0; i < devices.GetN(); i++) {
         Ptr<NetDevice> device = devices.Get(i);
-        device->EnablePcap("trace", device, true);
+        // Assuming you are working with point-to-point devices, change as needed
+        pcapHelper.EnablePcap("trace", device, true);
     }
 }
+
 
 void SDNController::calculateNodeTrust(NodeContainer& nodes) {
     for (NodeContainer::Iterator i = nodes.Begin(); i != nodes.End(); ++i) {
@@ -98,12 +102,3 @@ vector<double> SDNController::runLstmModel(const vector<double>& inputData) {
 
 
 
-void SDNController::EnablePcapTracing(NetDeviceContainer devices) {
-    PcapHelper pcapHelper;
-    
-    for (size_t i = 0; i < devices.GetN(); i++) {
-        Ptr<NetDevice> device = devices.Get(i);
-        // Assuming you are working with point-to-point devices, change as needed
-        pcapHelper.EnablePcap("trace", device, true);
-    }
-}
