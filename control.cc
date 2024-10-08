@@ -4,7 +4,7 @@
 #include "ns3/ipv4-address-helper.h"
 #include "ns3/internet-stack-helper.h"
 #include "ns3/log.h"
-#include "ns3/pcap-file-wrapper.h"
+
 #include "ns3/pcap-file-wrapper.h"
 #include "ns3/point-to-point-helper.h"
 
@@ -97,11 +97,13 @@ vector<double> SDNController::runLstmModel(const vector<double>& inputData) {
 
 
 
+
 void SDNController::EnablePcapTracing(NetDeviceContainer devices) {
-    // Use the correct PcapHelper function to enable PCAP tracing
+    PcapHelper pcapHelper;
+    
     for (size_t i = 0; i < devices.GetN(); i++) {
         Ptr<NetDevice> device = devices.Get(i);
-        // Assuming PointToPoint devices
-        PointToPointHelper::EnablePcap("trace", device, true);
+        // Assuming you are working with point-to-point devices, change as needed
+        pcapHelper.EnablePcap("trace", device, true);
     }
 }
