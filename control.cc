@@ -10,45 +10,27 @@
 
 using namespace ns3;
 
-void SDNController::initializeNetwork(int numNodes)
-{
+NetDeviceContainer SDNController::initializeNetwork(int numNodes) {
     NodeContainer nodes;
     nodes.Create(numNodes);
 
-    // Configure the CsmaHelper for network communication
-    CsmaHelper csmaHelper;
-    csmaHelper.SetChannelAttribute("DataRate", DataRateValue(DataRate("100Mbps")));
-    csmaHelper.SetChannelAttribute("Delay", TimeValue(MilliSeconds(2)));
+    PointToPointHelper p2p;
+    p2p.SetDeviceAttribute("DataRate", StringValue("5Mbps"));
+    p2p.SetChannelAttribute("Delay", StringValue("2ms"));
 
-    NetDeviceContainer netDevices = csmaHelper.Install(nodes);
+    NetDeviceContainer devices = p2p.Install(nodes);
 
-    // Set up OpenFlow switch using OFSwitch13InternalHelper
-    Ptr<OFSwitch13InternalHelper> ofHelper = CreateObject<OFSwitch13InternalHelper>();
-    Ptr<OFSwitch13LearningController> controller = CreateObject<OFSwitch13LearningController>();
-    ofHelper->InstallController(nodes.Get(0), controller); // Set controller on node 0
-
-    // Install switches
-    ofHelper->InstallSwitch(nodes.Get(1), netDevices);
-    ofHelper->CreateOpenFlowChannels();
-
-    // Install the Internet stack
     InternetStackHelper internet;
     internet.Install(nodes);
 
-    // Assign IP addresses
     Ipv4AddressHelper ipv4;
     ipv4.SetBase("10.1.1.0", "255.255.255.0");
-    ipv4.Assign(netDevices);
+    ipv4.Assign(devices);
 
-    // Enable tracing (PCAP)
-    EnablePcapTracing(netDevices); // Pass netDevices to EnablePcapTracing
-
-    // Add trust-based decision logic here
-    calculateNodeTrust(nodes);
-
-    // Call the LSTM-based prediction logic
-    lstmTrafficPrediction();
+    // Return the NetDeviceContainer with the devices
+    return devices;
 }
+
 
 // Trust calculation for each node
 void SDNController::calculateNodeTrust(NodeContainer& nodes)
