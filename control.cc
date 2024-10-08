@@ -1,103 +1,114 @@
 #include "control.h"
-#include <ns3/csma-helper.h>
+#include <ns3/applications-module.h>
+#include <ns3/core-module.h>
+#include <ns3/csma-module.h>
 #include <ns3/internet-module.h>
-#include <ns3/net-device.h>
-#include <ns3/ipv4-address-helper.h>
-#include <ns3/ofswitch13-module.h>  // Ensure OFSwitch13 module is correctly included
+#include <ns3/network-module.h>
+#include <ns3/ofswitch13-module.h>
 #include <iostream>
+#include <fstream>
+#include <vector>
 
-// Constructor
-SDNController::SDNController() {
-    // Constructor implementation
-}
+using namespace ns3;
 
-// Destructor
-SDNController::~SDNController() {
-    // Destructor implementation
-}
-
-void SDNController::initializeNetwork(int numNodes) {
-    // Create nodes container
-    ns3::NodeContainer nodes;
+void SDNController::initializeNetwork(int numNodes)
+{
+    NodeContainer nodes;
     nodes.Create(numNodes);
 
-    // Use OFSwitch13Helper to manage OpenFlow switches and controller
-    ns3::OFSwitch13Helper switchHelper;
-    
-    // Use CsmaHelper for wired connections (or AquaSimHelper for underwater networks)
-    ns3::CsmaHelper csmaHelper;
-    csmaHelper.SetChannelAttribute("DataRate", ns3::DataRateValue(ns3::DataRate("100Mbps")));
-    csmaHelper.SetChannelAttribute("Delay", ns3::TimeValue(ns3::MilliSeconds(2)));
+    // Configure the CsmaHelper for network communication
+    CsmaHelper csmaHelper;
+    csmaHelper.SetChannelAttribute("DataRate", DataRateValue(DataRate("100Mbps")));
+    csmaHelper.SetChannelAttribute("Delay", TimeValue(MilliSeconds(2)));
 
-    // Install devices on all nodes
-    ns3::NetDeviceContainer netDevices = csmaHelper.Install(nodes);
+    NetDeviceContainer netDevices = csmaHelper.Install(nodes);
 
-    // Install OpenFlow switch on the first node
-    ns3::Ptr<ns3::OFSwitch13LearningController> controller = ns3::CreateObject<ns3::OFSwitch13LearningController>();
-    ns3::OFSwitch13DeviceContainer switchDevices = switchHelper.InstallSwitch(nodes.Get(0), netDevices);
-    
-    // Attach the controller to the OpenFlow switch
-    switchHelper.InstallController(nodes.Get(0), controller);
-    
-    // Install Internet stack on nodes (IP, routing, etc.)
-    ns3::InternetStackHelper internet;
+    // Set up OpenFlow switch using OFSwitch13InternalHelper
+    Ptr<OFSwitch13InternalHelper> ofHelper = CreateObject<OFSwitch13InternalHelper>();
+    Ptr<OFSwitch13LearningController> controller = CreateObject<OFSwitch13LearningController>();
+    ofHelper->InstallController(nodes.Get(0), controller); // Set controller on node 0
+
+    // Install switches
+    NetDeviceContainer switchDevices = ofHelper->InstallSwitch(nodes.Get(1), netDevices);
+    ofHelper->CreateOpenFlowChannels();
+
+    // Install the Internet stack
+    InternetStackHelper internet;
     internet.Install(nodes);
 
-    // Assign IP addresses to devices
-    ns3::Ipv4AddressHelper ipv4;
+    // Assign IP addresses
+    Ipv4AddressHelper ipv4;
     ipv4.SetBase("10.1.1.0", "255.255.255.0");
     ipv4.Assign(netDevices);
 
-    // Store devices for pcap tracing
-    for (uint32_t i = 0; i < netDevices.GetN(); ++i) {
-        devices.push_back(netDevices.Get(i));
+    // Enable tracing (PCAP)
+    EnablePcapTracing();
+
+    // Add trust-based decision logic here
+    calculateNodeTrust(nodes);
+
+    // Call the LSTM-based prediction logic
+    lstmTrafficPrediction();
+}
+
+// Trust calculation for each node
+void SDNController::calculateNodeTrust(NodeContainer& nodes)
+{
+    for (uint32_t i = 0; i < nodes.GetN(); ++i)
+    {
+        Ptr<Node> node = nodes.Get(i);
+        double trustValue = computeNodeTrust(node);
+        std::cout << "Node " << i << " Trust Value: " << trustValue << std::endl;
     }
 }
 
-void SDNController::EnablePcapTracing() {
-    ns3::CsmaHelper csmaHelper;
+// Trust computation based on network parameters (dummy logic for now)
+double SDNController::computeNodeTrust(Ptr<Node> node)
+{
+    // In real implementation, this would be based on network stats like packet delivery, latency, etc.
+    double trustValue = 0.9;  // Example static value
+    // Simulate trust value calculation
+    trustValue = trustValue - 0.1 * (rand() % 5);  // Dummy computation
+    return trustValue;
+}
 
-    if (devices.empty()) {
-        std::cerr << "No devices initialized for PCAP tracing!" << std::endl;
-        return;
+// LSTM Traffic Prediction function
+void SDNController::lstmTrafficPrediction()
+{
+    // Placeholder for LSTM model loading and traffic prediction logic
+    std::vector<double> trafficData = loadTrafficData();
+    std::vector<double> prediction = runLstmModel(trafficData);
+
+    // Output the prediction results
+    for (size_t i = 0; i < prediction.size(); ++i)
+    {
+        std::cout << "Predicted Traffic for Node " << i << ": " << prediction[i] << std::endl;
     }
+}
 
-    for (size_t i = 0; i < devices.size(); ++i) {
-        std::string filename = "/home/capstone/trace/devansh/trace/node" + std::to_string(i) + ".pcap";
-        csmaHelper.EnablePcap(filename, devices[i], true);
-        std::cout << "PCAP logging enabled for node " << i << " -> " << filename << std::endl;
+// Function to load traffic data for LSTM model (dummy data here)
+std::vector<double> SDNController::loadTrafficData()
+{
+    std::vector<double> trafficData = {0.2, 0.3, 0.5, 0.7, 0.6, 0.8}; // Example data
+    return trafficData;
+}
+
+// Dummy LSTM model to predict traffic (this should load a real LSTM model)
+std::vector<double> SDNController::runLstmModel(const std::vector<double>& inputData)
+{
+    std::vector<double> predictedTraffic(inputData.size());
+    for (size_t i = 0; i < inputData.size(); ++i)
+    {
+        predictedTraffic[i] = inputData[i] + 0.1;  // Dummy prediction logic
     }
+    return predictedTraffic;
 }
 
-double SDNController::computeCommunicationTrust(const Node &node) {
-    // Placeholder: Implement communication trust computation
-    return 0.8;  // Example value
-}
-
-double SDNController::computeNodeTrust(const Node &node) {
-    // Placeholder: Implement node trust computation
-    return 0.9;  // Example value
-}
-
-double SDNController::computeEnvironmentTrust(const Node &node) {
-    // Placeholder: Implement environment trust computation
-    return 0.85;  // Example value
-}
-
-double SDNController::runLSTMModel(const std::vector<double> &trustMetrics) {
-    // Placeholder: Implement LSTM model for decision-making
-    // Combine trust metrics using LSTM model
-    double result = 0.5 * trustMetrics[0] + 0.3 * trustMetrics[1] + 0.2 * trustMetrics[2];
-    return result;
-}
-
-void SDNController::evaluateTrust() {
-    for (auto &node : nodes) {
-        double commTrust = computeCommunicationTrust(node);
-        double nodeTrust = computeNodeTrust(node);
-        double envTrust = computeEnvironmentTrust(node);
-
-        std::vector<double> trustMetrics = { commTrust, nodeTrust, envTrust };
-        node.trustScore = runLSTMModel(trustMetrics);  // Using LSTM to compute trust score
+void SDNController::EnablePcapTracing()
+{
+    CsmaHelper csmaHelper;
+    for (size_t i = 0; i < devices.size(); i++)
+    {
+        csmaHelper.EnablePcap("/home/capstone/trace/devansh/trace", devices[i], true);
     }
 }
