@@ -8,41 +8,25 @@
 
 using namespace ns3;
 
-int main(int argc, char *argv[])
-{
-    uint16_t simTime = 10; // Simulation time in seconds
-    bool verbose = false;
-    bool trace = true; // Enable PCAP traces
-
-    // Configure command line parameters
-    CommandLine cmd;
-    cmd.AddValue("simTime", "Simulation time (seconds)", simTime);
-    cmd.AddValue("verbose", "Enable verbose output", verbose);
-    cmd.AddValue("trace", "Enable PCAP tracing", trace);
-    cmd.Parse(argc, argv);
-
-    // Initialize the SDN controller
+int main(int argc, char *argv[]) {
+    // Set up the network and nodes
     SDNController controller;
-    int numNodes = 50; // Number of nodes in the network
+    NodeContainer nodes;
+    nodes.Create(3); // Example: Create 3 nodes
 
-    // Initialize network in SDN controller
-    controller.initializeNetwork(numNodes);
+    // Initialize the network
+    controller.initializeNetwork(nodes.GetN());
 
-    if (verbose) {
-        LogComponentEnable("OFSwitch13Device", LOG_LEVEL_ALL);
-        LogComponentEnable("OFSwitch13Controller", LOG_LEVEL_ALL);
-        LogComponentEnable("SDNController", LOG_LEVEL_ALL);
-    }
+    // Obtain the NetDeviceContainer (assuming you have it from controller.initializeNetwork or another source)
+    NetDeviceContainer netDevices; // This should be the container of your network devices
+    // Typically, netDevices would be filled with the devices during initialization
 
-    // Enable tracing (PCAP format)
-    if (trace) {
-        controller.EnablePcapTracing();
-    }
+    // Pass the NetDeviceContainer to EnablePcapTracing
+    controller.EnablePcapTracing(netDevices);
 
     // Run the simulation
-    Simulator::Stop(Seconds(simTime));
     Simulator::Run();
     Simulator::Destroy();
-
     return 0;
 }
+
