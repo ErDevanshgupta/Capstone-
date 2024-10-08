@@ -15,12 +15,14 @@ int main(int argc, char *argv[]) {
     // Initialize the network and get the NetDeviceContainer
     NetDeviceContainer netDevices = controller.initializeNetwork(nodes.GetN());
 
-    // Enable PCAP tracing
-    controller.EnablePcapTracing(netDevices);
+    // Enable PCAP tracing (Pass netDevices)
+    controller.EnablePcapTracing(netDevices); 
 
     // Run the simulation
     Simulator::Run();
     Simulator::Destroy();
     return 0;
 }
+
+
 
