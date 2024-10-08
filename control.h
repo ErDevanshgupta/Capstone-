@@ -13,15 +13,15 @@ using namespace std;
 class SDNController {
 public:
     void initializeNetwork(int numNodes);
-    void EnablePcapTracing();
-
-    // Trust calculation and LSTM prediction functions
-    void calculateNodeTrust(NodeContainer& nodes);
-    double computeNodeTrust(Ptr<Node> node);
-
+    void calculateNodeTrust(ns3::NodeContainer& nodes);
+    double computeNodeTrust(ns3::Ptr<ns3::Node> node);
     void lstmTrafficPrediction();
-    vector<double> loadTrafficData();
-    vector<double> runLstmModel(const vector<double>& inputData);
+    std::vector<double> loadTrafficData();
+    std::vector<double> runLstmModel(const std::vector<double>& inputData);
+
+    // Update this declaration to accept NetDeviceContainer
+    void EnablePcapTracing(ns3::NetDeviceContainer devices);
 };
+
 
 #endif // SDNCONTROLLER_H
