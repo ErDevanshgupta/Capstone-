@@ -5,6 +5,8 @@
 #include "ns3/internet-stack-helper.h"
 #include "ns3/log.h"
 #include "ns3/pcap-file-wrapper.h"
+#include "ns3/pcap-file-wrapper.h"
+#include "ns3/point-to-point-helper.h"
 
 using namespace ns3;
 using namespace std;
@@ -90,4 +92,16 @@ vector<double> SDNController::runLstmModel(const vector<double>& inputData) {
         outputData.push_back(value * 1.1); // Example transformation
     }
     return outputData;
+}
+
+
+
+
+void SDNController::EnablePcapTracing(NetDeviceContainer devices) {
+    // Use the correct PcapHelper function to enable PCAP tracing
+    for (size_t i = 0; i < devices.GetN(); i++) {
+        Ptr<NetDevice> device = devices.Get(i);
+        // Assuming PointToPoint devices
+        PointToPointHelper::EnablePcap("trace", device, true);
+    }
 }
