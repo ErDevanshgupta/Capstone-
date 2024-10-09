@@ -30,6 +30,9 @@ public:
     // Initialize the network with a given number of nodes
     void initializeNetwork(int numNodes);
 
+NetDeviceContainer initializeNetwork(int numNodes);
+
+
     // Evaluate trust for all nodes
     void evaluateTrust();
 
