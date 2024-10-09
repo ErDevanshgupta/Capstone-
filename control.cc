@@ -41,7 +41,7 @@ NetDeviceContainer SDNController::initializeNetwork(int numNodes) {
     ipv4.SetBase("10.1.1.0", "255.255.255.0");
     ipv4.Assign(netDevices);
 
-    return netDevices;
+    return netDevices; // Return NetDeviceContainer for later use
 }
 
 void SDNController::EnablePcapTracing() {
