@@ -19,30 +19,28 @@ NetDeviceContainer SDNController::initializeNetwork(int numNodes) {
     ns3::NodeContainer nodes;
     nodes.Create(numNodes);
 
-    // Use CsmaHelper for wired connections (or AquaSimHelper for UASNs)
     ns3::CsmaHelper csmaHelper;
     csmaHelper.SetChannelAttribute("DataRate", ns3::DataRateValue(ns3::DataRate("100Mbps")));
     csmaHelper.SetChannelAttribute("Delay", ns3::TimeValue(ns3::MilliSeconds(2)));
 
-    // Install devices on all nodes
-    ns3::NetDeviceContainer netDevices = csmaHelper.Install(nodes);
+    NetDeviceContainer netDevices = csmaHelper.Install(nodes);
 
-    // Add devices to the vector for PCAP tracing
+    // Store devices for tracing
     for (uint32_t i = 0; i < netDevices.GetN(); ++i) {
         devices.push_back(netDevices.Get(i));
     }
 
-    // Install Internet stack (IP, routing, etc.) on the nodes
+    // Install Internet stack and IP addresses
     ns3::InternetStackHelper internet;
     internet.Install(nodes);
-
-    // Assign IP addresses to devices
+    
     ns3::Ipv4AddressHelper ipv4;
     ipv4.SetBase("10.1.1.0", "255.255.255.0");
     ipv4.Assign(netDevices);
 
-    return netDevices; // Return NetDeviceContainer for later use
+    return netDevices;
 }
+
 
 void SDNController::EnablePcapTracing() {
     ns3::CsmaHelper csmaHelper;
