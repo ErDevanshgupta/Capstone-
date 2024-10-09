@@ -15,8 +15,8 @@ SDNController::~SDNController() {
 }
 
 void SDNController::initializeNetwork(int numNodes) {
-    ns3::NodeContainer nodes;
-    nodes.Create(numNodes);
+    ns3::NodeContainer ns3Nodes;
+    ns3Nodes.Create(numNodes);
 
     // Use CsmaHelper for wired connections (or AquaSimHelper for UASNs)
     ns3::CsmaHelper csmaHelper;
@@ -24,7 +24,7 @@ void SDNController::initializeNetwork(int numNodes) {
     csmaHelper.SetChannelAttribute("Delay", ns3::TimeValue(ns3::MilliSeconds(2)));
 
     // Install devices on all nodes
-    ns3::NetDeviceContainer netDevices = csmaHelper.Install(nodes);
+    ns3::NetDeviceContainer netDevices = csmaHelper.Install(ns3Nodes);
 
     // Add devices to the vector for PCAP tracing
     for (uint32_t i = 0; i < netDevices.GetN(); ++i) {
@@ -33,21 +33,21 @@ void SDNController::initializeNetwork(int numNodes) {
 
     // Install Internet stack (IP, routing, etc.) on the nodes
     ns3::InternetStackHelper internet;
-    internet.Install(nodes);
+    internet.Install(ns3Nodes);
 
     // Assign IP addresses to devices
     ns3::Ipv4AddressHelper ipv4;
     ipv4.SetBase("10.1.1.0", "255.255.255.0");
     ipv4.Assign(netDevices);
 
-    // Initialize nodes for trust evaluation
+    // Initialize custom Node objects for trust evaluation
     for (int i = 0; i < numNodes; ++i) {
         Node node;
         node.id = i;
-        node.energy = 100.0; // Initial energy value (could be dynamic)
+        node.energy = 100.0; // Initial energy value (can be dynamic)
         node.trustScore = 0.5; // Initialize trust score to neutral value
         node.isMalicious = false;
-        nodes.push_back(node);
+        customNodes.push_back(node); // Store in the custom vector for trust calculation
     }
 }
 
@@ -67,7 +67,7 @@ void SDNController::EnablePcapTracing() {
 }
 
 void SDNController::evaluateTrust() {
-    for (Node &node : nodes) {
+    for (Node &node : customNodes) {
         node.trustScore = computeNodeTrust(node);
         std::cout << "Node " << node.id << " trust score: " << node.trustScore << std::endl;
     }
@@ -87,7 +87,7 @@ double SDNController::computeNodeTrust(const Node &node) {
 
 double SDNController::computeCommunicationTrust(const Node &node) {
     // Example: Based on packet delivery success (simulated as a random value)
-    double deliverySuccessRate = 0.9; // Example fixed value, this should come from the network stats
+    double deliverySuccessRate = 0.9; // Example fixed value, this should come from network stats
     return deliverySuccessRate; // Return value between 0 and 1
 }
 
@@ -104,3 +104,4 @@ double SDNController::computeEnvironmentTrust(const Node &node) {
     double maxEnergy = 100.0;
     return node.energy / maxEnergy; // Return value between 0 and 1
 }
+
