@@ -14,9 +14,10 @@ SDNController::~SDNController() {
     // Destructor implementation
 }
 
-void SDNController::initializeNetwork(int numNodes) {
-    ns3::NodeContainer ns3Nodes;
-    ns3Nodes.Create(numNodes);
+
+NetDeviceContainer SDNController::initializeNetwork(int numNodes) {
+    ns3::NodeContainer nodes;
+    nodes.Create(numNodes);
 
     // Use CsmaHelper for wired connections (or AquaSimHelper for UASNs)
     ns3::CsmaHelper csmaHelper;
@@ -24,7 +25,7 @@ void SDNController::initializeNetwork(int numNodes) {
     csmaHelper.SetChannelAttribute("Delay", ns3::TimeValue(ns3::MilliSeconds(2)));
 
     // Install devices on all nodes
-    ns3::NetDeviceContainer netDevices = csmaHelper.Install(ns3Nodes);
+    ns3::NetDeviceContainer netDevices = csmaHelper.Install(nodes);
 
     // Add devices to the vector for PCAP tracing
     for (uint32_t i = 0; i < netDevices.GetN(); ++i) {
@@ -33,22 +34,14 @@ void SDNController::initializeNetwork(int numNodes) {
 
     // Install Internet stack (IP, routing, etc.) on the nodes
     ns3::InternetStackHelper internet;
-    internet.Install(ns3Nodes);
+    internet.Install(nodes);
 
     // Assign IP addresses to devices
     ns3::Ipv4AddressHelper ipv4;
     ipv4.SetBase("10.1.1.0", "255.255.255.0");
     ipv4.Assign(netDevices);
 
-    // Initialize custom Node objects for trust evaluation
-    for (int i = 0; i < numNodes; ++i) {
-        Node node;
-        node.id = i;
-        node.energy = 100.0; // Initial energy value (can be dynamic)
-        node.trustScore = 0.5; // Initialize trust score to neutral value
-        node.isMalicious = false;
-        customNodes.push_back(node); // Store in the custom vector for trust calculation
-    }
+    return netDevices;
 }
 
 void SDNController::EnablePcapTracing() {
