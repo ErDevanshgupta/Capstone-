@@ -1,66 +1,41 @@
 #include "control.h"
 #include <ns3/core-module.h>
-#include <ns3/csma-module.h>
 #include <ns3/internet-module.h>
-#include <ns3/network-module.h>
-#include <ns3/ofswitch13-module.h>
-#include <ns3/aqua-sim-helper.h>
-#include <ns3/ipv4-static-routing-helper.h>
-#include <ns3/ipv4-routing-helper.h>
-#include <ns3/ipv4-static-routing.h>
-#include <ns3/ipv4-routing-table-entry.h>
-#include <ns3/applications-module.h>
+#include <ns3/csma-module.h>
 #include <ns3/v4ping-helper.h>
 
 using namespace ns3;
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
+    uint16_t numNodes = 50;
     uint16_t simTime = 10; // Simulation time in seconds
-    bool verbose = false;
-    bool trace = true; // Enable PCAP traces
 
-    // Configure command line parameters
+    // Command line parameters
     CommandLine cmd;
     cmd.AddValue("simTime", "Simulation time (seconds)", simTime);
-    cmd.AddValue("verbose", "Enable verbose output", verbose);
-    cmd.AddValue("trace", "Enable PCAP tracing", trace);
     cmd.Parse(argc, argv);
 
-    // Initialize the SDN controller
+    // Initialize the SDN controller and network
     SDNController controller;
-    int numNodes = 50; // Number of nodes in the network
-
-    // Initialize network and get the devices
     NetDeviceContainer netDevices = controller.initializeNetwork(numNodes);
 
-    // Setup ICMP ping between nodes
-    uint32_t sourceNodeIndex = 0;
-    uint32_t destNodeIndex = numNodes - 1;
+    // Pinging from node 0 to node 49
+    Ptr<Node> sourceNode = NodeList::GetNode(0);
+    Ptr<Node> destNode = NodeList::GetNode(numNodes - 1);
 
-    Ptr<Node> sourceNode = NodeList::GetNode(sourceNodeIndex);
-    Ptr<Node> destNode = NodeList::GetNode(destNodeIndex);
-
-    // Get the destination IP address
+    // Get the IP address of the destination node
     Ipv4Address destAddress = destNode->GetObject<Ipv4>()->GetAddress(1, 0).GetLocal();
 
-    // Install Ping Application on the source node
+    // Install Ping application on the source node
     V4PingHelper ping(destAddress);
     ping.SetAttribute("Verbose", BooleanValue(true));
     ApplicationContainer app = ping.Install(sourceNode);
-    app.Start(Seconds(1.0));  // Start pinging at time = 1s
+
+    app.Start(Seconds(1.0));
     app.Stop(Seconds(simTime - 1));
 
-    if (verbose) {
-        LogComponentEnable("OFSwitch13Device", LOG_LEVEL_ALL);
-        LogComponentEnable("OFSwitch13Controller", LOG_LEVEL_ALL);
-        LogComponentEnable("SDNController", LOG_LEVEL_ALL);
-    }
-
-    // Enable tracing (PCAP format)
-    if (trace) {
-        controller.EnablePcapTracing();
-    }
+    // Enable PCAP tracing
+    csma.EnablePcapAll("ping-trace");
 
     // Run the simulation
     Simulator::Stop(Seconds(simTime));
