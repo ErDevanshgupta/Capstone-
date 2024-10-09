@@ -16,30 +16,27 @@ SDNController::~SDNController() {
 
 
 NetDeviceContainer SDNController::initializeNetwork(int numNodes) {
-    ns3::NodeContainer nodes;
+    NodeContainer nodes;
     nodes.Create(numNodes);
 
-    ns3::CsmaHelper csmaHelper;
-    csmaHelper.SetChannelAttribute("DataRate", ns3::DataRateValue(ns3::DataRate("100Mbps")));
-    csmaHelper.SetChannelAttribute("Delay", ns3::TimeValue(ns3::MilliSeconds(2)));
+    CsmaHelper csma;
+    csma.SetChannelAttribute("DataRate", DataRateValue(DataRate("100Mbps")));
+    csma.SetChannelAttribute("Delay", TimeValue(MilliSeconds(2)));
 
-    NetDeviceContainer netDevices = csmaHelper.Install(nodes);
+    NetDeviceContainer devices = csma.Install(nodes);
 
-    // Store devices for tracing
-    for (uint32_t i = 0; i < netDevices.GetN(); ++i) {
-        devices.push_back(netDevices.Get(i));
-    }
-
-    // Install Internet stack and IP addresses
-    ns3::InternetStackHelper internet;
+    // Install the Internet stack
+    InternetStackHelper internet;
     internet.Install(nodes);
-    
-    ns3::Ipv4AddressHelper ipv4;
-    ipv4.SetBase("10.1.1.0", "255.255.255.0");
-    ipv4.Assign(netDevices);
 
-    return netDevices;
+    // Assign IP addresses
+    Ipv4AddressHelper ipv4;
+    ipv4.SetBase("10.1.1.0", "255.255.255.0");
+    ipv4.Assign(devices);
+
+    return devices;
 }
+
 
 
 void SDNController::EnablePcapTracing() {
