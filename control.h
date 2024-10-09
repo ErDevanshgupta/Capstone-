@@ -5,6 +5,14 @@
 #include <string>
 #include <map>
 #include <ns3/net-device.h>
+#include <ns3/net-device-container.h>
+#include <ns3/csma-helper.h>
+#include <ns3/ptr.h>
+#include <ns3/node-container.h>
+#include <ns3/ipv4-address-helper.h>
+#include <ns3/internet-stack-helper.h>
+#include <ns3/v4ping-helper.h>
+
 NetDeviceContainer initializeNetwork(int numNodes);
 
 // Node structure representing individual network nodes
