@@ -51,6 +51,7 @@ private:
     double computeCommunicationTrust(const Node &node);
     double computeNodeTrust(const Node &node);
     double computeEnvironmentTrust(const Node &node);
+    double computeBehaviorTrust(const Node &node); // Add this declaration
 
     // Routing function to find the optimal path
     std::vector<int> getOptimalPath(int src, int dest);
