@@ -5,8 +5,12 @@
 #include <ns3/network-module.h>
 #include <ns3/ofswitch13-module.h>
 #include <ns3/aqua-sim-helper.h>
-#include <ns3/v4ping-helper.h>  // Include Ping module
 #include <ns3/ipv4-static-routing-helper.h>
+#include <ns3/ipv4-routing-helper.h>
+#include <ns3/ipv4-static-routing.h>
+#include <ns3/ipv4-routing-table-entry.h>
+#include <ns3/applications-module.h>
+#include <ns3/v4ping-helper.h> // Include the v4ping module for pinging
 
 using namespace ns3;
 
@@ -27,24 +31,25 @@ int main(int argc, char *argv[])
     SDNController controller;
     int numNodes = 50; // Number of nodes in the network
 
-    // Initialize network in SDN controller and get devices
+    // Initialize network in SDN controller and get the devices
     NetDeviceContainer netDevices = controller.initializeNetwork(numNodes);
 
     // Setup ICMP ping between nodes
     uint32_t sourceNodeIndex = 0;
     uint32_t destNodeIndex = numNodes - 1;
 
-    Ptr<Node> sourceNode = NodeList::GetNode(sourceNodeIndex);
+    Ptr<Node> sourceNode = NodeList::GetNode(sourceNodeIndex); // Correct use of Ptr<Node>
     Ptr<Node> destNode = NodeList::GetNode(destNodeIndex);
 
-    Ipv4Address destAddress = destNode->GetObject<Ipv4>()->GetAddress(1, 0).GetLocal(); // Get destination IP
+    // Get the destination IP address
+    Ipv4Address destAddress = destNode->GetObject<Ipv4>()->GetAddress(1, 0).GetLocal(); 
 
     // Install Ping Application on the source node
-    V4PingHelper ping(destAddress); // Use V4PingHelper for the ping application
+    V4PingHelper ping(destAddress); 
     ping.SetAttribute("Verbose", BooleanValue(true));
-    ApplicationContainer app = ping.Install(sourceNode);
+    ApplicationContainer app = ping.Install(sourceNode); // Corrected the usage of Install with Ptr<Node>
     app.Start(Seconds(1.0));  // Start pinging at time = 1s
-    app.Stop(Seconds(simTime - 1)); // Stop before the end of simulation
+    app.Stop(Seconds(simTime - 1));
 
     if (verbose) {
         LogComponentEnable("OFSwitch13Device", LOG_LEVEL_ALL);
