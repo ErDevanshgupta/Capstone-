@@ -5,6 +5,12 @@
 #include <ns3/network-module.h>
 #include <ns3/ofswitch13-module.h>
 #include <ns3/aqua-sim-helper.h>
+#include <ns3/icmpv4-l4-protocol.h>
+#include <ns3/ipv4-static-routing-helper.h>
+#include <ns3/ipv4-routing-helper.h>
+#include <ns3/ipv4-static-routing.h>
+#include <ns3/ipv4-routing-table-entry.h>
+#include <ns3/applications-module.h>
 
 using namespace ns3;
 
@@ -26,19 +32,37 @@ int main(int argc, char *argv[])
     int numNodes = 50; // Number of nodes in the network
 
     // Initialize network in SDN controller
-    controller.initializeNetwork(numNodes);
+    NetDeviceContainer netDevices = controller.initializeNetwork(numNodes);
 
-    if (verbose) {
+    // Setup ICMP ping between nodes
+    uint32_t sourceNodeIndex = 0;
+    uint32_t destNodeIndex = numNodes - 1;
+    Ptr<Node> sourceNode = NodeList::GetNode(sourceNodeIndex);
+    Ptr<Node> destNode = NodeList::GetNode(destNodeIndex);
+
+    // Create ICMP echo application on the source node
+    Ipv4Address destAddress = sourceNode->GetObject<Ipv4>()->GetAddress(1, 0).GetLocal();
+    Ipv4AddressHelper ipv4;
+    ipv4.SetBase("10.1.1.0", "255.255.255.0");
+    Ipv4InterfaceContainer interfaces = ipv4.Assign(netDevices);
+
+    // Install Ping Application
+    V4PingHelper ping(destAddress);
+    ping.SetAttribute("Verbose", BooleanValue(true));
+    ApplicationContainer app = ping.Install(sourceNode);
+    app.Start(Seconds(1.0));
+    app.Stop(Seconds(simTime - 1));
+
+    if (verbose)
+    {
         LogComponentEnable("OFSwitch13Device", LOG_LEVEL_ALL);
         LogComponentEnable("OFSwitch13Controller", LOG_LEVEL_ALL);
         LogComponentEnable("SDNController", LOG_LEVEL_ALL);
     }
 
-    // Evaluate trust for nodes
-    controller.evaluateTrust();
-
     // Enable tracing (PCAP format)
-    if (trace) {
+    if (trace)
+    {
         controller.EnablePcapTracing();
     }
 
