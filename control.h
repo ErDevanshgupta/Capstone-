@@ -5,6 +5,7 @@
 #include <string>
 #include <map>
 #include <ns3/net-device.h>
+NetDeviceContainer initializeNetwork(int numNodes);
 
 // Node structure representing individual network nodes
 struct Node {
@@ -30,7 +31,6 @@ public:
     // Initialize the network with a given number of nodes
     void initializeNetwork(int numNodes);
 
-NetDeviceContainer initializeNetwork(int numNodes);
 
 
     // Evaluate trust for all nodes
