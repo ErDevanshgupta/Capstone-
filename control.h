@@ -1,25 +1,43 @@
-#ifndef SDN_CONTROLLER_H
-#define SDN_CONTROLLER_H
+#ifndef CONTROL_H
+#define CONTROL_H
 
-#include "ns3/core-module.h"
-#include "ns3/network-module.h"
-#include "ns3/internet-module.h"
 #include <vector>
+#include <string>
+#include <map>
+#include <ns3/net-device.h>
 
-using namespace ns3;
-using namespace std;
-
-class SDNController {
-public:
-    NetDeviceContainer initializeNetwork(int numNodes);
-    void EnablePcapTracing(ns3::NetDeviceContainer devices);
-
-    // Add these missing function declarations
-    void calculateNodeTrust(ns3::NodeContainer& nodes);
-    double computeNodeTrust(ns3::Ptr<Node> node);  // Adjust if required
-    void lstmTrafficPrediction();
-    vector<double> loadTrafficData();  // Adjust the return type and parameters as needed
-    vector<double> runLstmModel(const vector<double>& inputData);  // Adjust if required
+// Node structure representing individual network nodes
+struct Node {
+    int id;
+    double energy;
+    double trustScore;
+    bool isMalicious;
 };
 
-#endif // SDN_CONTROLLER_H
+// SDNController class for managing trust and routing decisions
+class SDNController {
+public:
+    SDNController();
+    ~SDNController();
+
+    // Initialize the network with a given number of nodes
+    void initializeNetwork(int numNodes);
+
+    // Enable PCAP tracing for network devices
+    void EnablePcapTracing();
+
+    // Evaluate trust for all nodes
+    void evaluateTrust();
+
+private:
+    std::vector<Node> nodes;
+    std::vector<ns3::Ptr<ns3::NetDevice>> devices; // Store network devices
+
+    // Trust evaluation functions
+    double computeNodeTrust(const Node &node);
+    double computeCommunicationTrust(const Node &node);
+    double computeBehaviorTrust(const Node &node);
+    double computeEnvironmentTrust(const Node &node);
+};
+
+#endif // CONTROL_H
